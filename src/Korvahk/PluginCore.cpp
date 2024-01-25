@@ -19,6 +19,10 @@
 #include <memory>
 
 #include "Plasma/Creatable.h"
+#include "Plasma/Dispatch.h"
+#include "Plasma/Message.h"
+#include "Plasma/Pipeline.h"
+#include "Plasma/ResMgr.h"
 
 // ==========================================================================
 
@@ -75,12 +79,26 @@ Korvahk::Plugin::Plugin(
       fTimer(timer),
       fNetApp(netApp)
 {
-    Log("I'm back! ... in the saddle again...");
+    IInitKey();
 }
 
 Korvahk::Plugin::~Plugin()
 {
     s_plugin = nullptr;
+}
+
+// ==========================================================================
+
+void Korvahk::Plugin::IInitKey()
+{
+    Log("Creating plugin's Key...");
+    Plasma::Location globalLoc{ Plasma::Location::kGlobalFixedLocIdx };
+    Plasma::Key key = fResMgr->NewKey("Korvahk", this, globalLoc);
+    SetKey(key);
+    Log("... Done!");
+
+    // Test receiving something...
+    fResMgr->Dispatch()->RegisterForExactType(Plasma::RenderMsg::Index(), GetKey());
 }
 
 // ==========================================================================
@@ -106,4 +124,19 @@ void Korvahk::Plugin::Initialize(
     // The plugin constructor will carry forward from here.
     s_plugin = new Plugin(mgr, factory, timerCallbackMgr, timer, netApp);
     s_plugin->Log("Plugin::Initialize() complete!");
+}
+
+// ==========================================================================
+
+Plasma::Boolean Korvahk::Plugin::MsgReceive(Plasma::Message* msg)
+{
+    if (auto* pRenderMsg = fFactory->Convert<Plasma::RenderMsg>(msg)) {
+        // TEMPORARY
+        // Just testing that message receiving works for now...
+        LogF("First render message received for {}", pRenderMsg->fPipeline->ClassName());
+        fResMgr->Dispatch()->UnRegisterForExactType(Plasma::RenderMsg::Index(), GetKey());
+        return Plasma::True;
+    }
+
+    return Plasma::KeyedObject::MsgReceive(msg);
 }

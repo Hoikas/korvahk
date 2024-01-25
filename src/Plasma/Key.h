@@ -54,9 +54,9 @@ namespace Plasma
         unsigned int fFlags;
 
     public:
-        Location()
-            : fSequenceNumber(kInvalidLocIdx),
-              fFlags()
+        Location(unsigned int sequence = kInvalidLocIdx, unsigned int flags = 0)
+            : fSequenceNumber(sequence),
+              fFlags(flags)
         { }
     };
 

@@ -82,7 +82,7 @@ namespace Plasma
         virtual Creatable* ReadCreatableVersion(Stream*) = 0;
         virtual void WriteCreatableVersion(Stream*, Creatable*) = 0;
         virtual Key NewKey(Uoid&, KeyedObject*) = 0;
-        virtual Key NewKey(ConstStringRef, KeyedObject*, const Location&, const LoadMask&) = 0;
+        virtual Key NewKey(ConstStringRef, KeyedObject*, const Location&, const LoadMask & = {}) = 0;
 
 #ifdef PLASMA_TPOTS
         virtual Uoid* FindAlias(char const*, unsigned short) = 0;

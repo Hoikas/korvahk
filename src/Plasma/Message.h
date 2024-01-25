@@ -103,4 +103,13 @@ namespace Plasma
     public:
         PLASMA_CREATABLE(ProxyDrawMsg)
     };
+
+    class RenderMsg : public Message
+    {
+    public:
+        class Pipeline* fPipeline;
+
+    public:
+        PLASMA_CREATABLE_RW(RenderMsg)
+    };
 };

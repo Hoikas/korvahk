@@ -51,6 +51,9 @@ namespace Korvahk
         );
         ~Plugin() override;
 
+    private:
+        void IInitKey();
+
     public:
         PLASMA_REFCOUNT_UNREF_SIGNATURE override
         {
@@ -63,6 +66,8 @@ namespace Korvahk
 
             return refs;
         }
+
+        Plasma::Boolean MsgReceive(Plasma::Message* msg);
 
     private:
         void ILog(const ST::string& msg) const

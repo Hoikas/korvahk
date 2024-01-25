@@ -102,5 +102,18 @@ namespace Plasma
         {
             return fCreators[hClass];
         }
+
+        template<typename T>
+        T* Convert(Creatable* pCre) const
+        {
+            static_assert(std::is_base_of_v<Creatable, T>, "pCre can only be a Creatable");
+
+            unsigned short pCreIdx = pCre->ClassIndex();
+            if (pCreIdx == T::Index())
+                return static_cast<T*>(pCre);
+            if (fCreators[pCreIdx]->HasBaseClass(T::Index()))
+                return static_cast<T*>(pCre);
+            return nullptr;
+        }
     };
 };
