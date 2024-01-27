@@ -19,6 +19,7 @@
 #include "plConfig.h"
 
 #include "Plasma/BitVector.h"
+#include "Plasma/TArray.h"
 #include "Plasma/Types.h"
 
 namespace Plasma
@@ -90,19 +91,6 @@ namespace Plasma
         Location fId;
         unsigned char fFlags;
         LegacyStdString fDesc;
-    };
-
-    class Key
-    {
-    public:
-        class KeyData* fKeyData;
-
-    public:
-        Key() : fKeyData() { }
-
-        operator bool() const { return fKeyData != nullptr; }
-        KeyData* operator ->() const { return fKeyData; }
-        KeyData& operator *() const { return *fKeyData; }
     };
 
     enum FixedKeyId
@@ -181,8 +169,8 @@ namespace Plasma
 
     public:
 #if defined(PLASMA_MOUL)
-        unsigned long fObjectID;
-        unsigned long fClonePlayerID;
+        unsigned int fObjectID;
+        unsigned int fClonePlayerID;
         unsigned short fCloneID;
         unsigned short fClassType;
         String fObjectName;
@@ -233,24 +221,110 @@ namespace Plasma
 
     class KeyData
     {
-    private:
+    public:
         unsigned short fRefCount;
 
     public:
-        virtual Uoid const& GetUoid() const = 0;
+        KeyData() : fRefCount() {}
+        virtual ~KeyData() {}
+
+        virtual const Uoid& GetUoid() const = 0;
         virtual String GetName() const = 0;
         virtual class KeyedObject* GetObjectPtr() = 0;
         virtual class KeyedObject* ObjectIsLoaded() const = 0;
         virtual class KeyedObject* VerifyLoaded() = 0;
         virtual class KeyedObject* RefObject(RefFlags::Type) = 0;
         virtual void UnRefObject(RefFlags::Type) = 0;
-        virtual void Release(Key) = 0;
+        virtual void Release(class Key) = 0;
         virtual unsigned short GetActiveRefs() const = 0;
         virtual unsigned short GetNumNotifyCreated() const = 0;
         virtual class RefMsg* GetNotifyCreated(int) const = 0;
-        virtual BitVector& GetActiveBits() const = 0;
+        virtual const BitVector& GetActiveBits() const = 0;
+    };
 
-        KeyData() : fRefCount() { }
-        virtual ~KeyData(){}
+    class Key
+    {
+    public:
+        KeyData* fKeyData;
+
+    public:
+        Key() : fKeyData() {}
+
+        Key(const Key& rhs)
+            : fKeyData(rhs.fKeyData)
+        {
+            if (fKeyData)
+                fKeyData->fRefCount++;
+        }
+
+        Key(Key&& rhs) noexcept
+            : fKeyData(rhs.fKeyData)
+        {
+            rhs.fKeyData = nullptr;
+        }
+
+        ~Key()
+        {
+            if (fKeyData)
+                fKeyData->fRefCount--;
+        }
+
+        Key& operator =(Key&& rhs)
+        {
+            fKeyData = rhs.fKeyData;
+            rhs.fKeyData = nullptr;
+            return *this;
+        }
+
+        Key& operator =(const Key& rhs)
+        {
+            KeyData* oldData = fKeyData;
+            fKeyData = rhs.fKeyData;
+            if (fKeyData)
+                fKeyData->fRefCount++;
+            if (oldData)
+                oldData->fRefCount--;
+            return *this;
+        }
+
+        operator bool() const { return fKeyData != nullptr; }
+        KeyData* operator ->() const { return fKeyData; }
+        KeyData& operator *() const { return *fKeyData; }
+    };
+
+    class KeyImp : public KeyData
+    {
+    public:
+        class KeyedObject* fObjectPtr;
+        Uoid fUoid;
+        unsigned int fStartPos, fDataLen;
+        unsigned short fNumActiveRefs;
+        BitVector fActiveRefs, fNotified;
+        TArray<class RefMsg*> fNotifyCreated;
+        TArray<KeyImp*> fRefs;
+        short fPendingRefs;
+        TArray<KeyImp*> fClones;
+        Key fCloneOwner;
+
+    public:
+        virtual const Uoid& GetUoid() const;
+        virtual String GetName() const;
+        virtual class KeyedObject* GetObjectPtr();
+        virtual class KeyedObject* ObjectIsLoaded() const;
+        virtual class KeyedObject* VerifyLoaded();
+        virtual class KeyedObject* RefObject(RefFlags::Type);
+        virtual void UnRefObject(RefFlags::Type);
+        virtual void Release(Key);
+        virtual unsigned short GetActiveRefs() const;
+        virtual unsigned short GetNumNotifyCreated() const;
+        virtual class RefMsg* GetNotifyCreated(int) const;
+        virtual const BitVector& GetActiveBits() const;
+
+    public:
+        static KeyImp* GetFromKey(Key& key)
+        {
+            KeyImp& imp = (KeyImp&)*key;
+            return &imp;
+        }
     };
 };
