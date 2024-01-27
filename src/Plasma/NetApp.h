@@ -53,27 +53,27 @@ namespace Plasma
         virtual ~Loggable() {}
 
 #ifndef PLASMA_HAVE_STRING_THEORY
-        virtual bool Log(char*) const {}
-        virtual bool LogF(char*, ...) const {}
-        virtual bool LogV(char*, va_list) const {}
-        virtual bool ErrorMsgV(char*, va_list) const {}
-        virtual bool DebugMsgV(char*, va_list) const {}
-        virtual bool WarningMsgV(char*, va_list) const {}
-        virtual bool AppMsgV(char*, va_list) const {}
-        virtual bool ErrorMsg(char*, ...) const {}
-        virtual bool DebugMsg(char*, ...) const {}
-        virtual bool WarningMsg(char*, ...) const {}
-        virtual bool AppMsg(char*, ...) const {}
+        virtual bool Log(char*) const;
+        virtual bool LogF(char*, ...) const;
+        virtual bool LogV(char*, va_list) const;
+        virtual bool ErrorMsgV(char*, va_list) const;
+        virtual bool DebugMsgV(char*, va_list) const;
+        virtual bool WarningMsgV(char*, va_list) const;
+        virtual bool AppMsgV(char*, va_list) const;
+        virtual bool ErrorMsg(char*, ...) const;
+        virtual bool DebugMsg(char*, ...) const;
+        virtual bool WarningMsg(char*, ...) const;
+        virtual bool AppMsg(char*, ...) const;
 #else
-        virtual bool Log(const ST::string&) const {}
-        virtual bool ErrorMsg(const ST::string&) const {}
-        virtual bool DebugMsg(const ST::string&) const {}
-        virtual bool WarningMsg(const ST::string&) const {}
-        virtual bool AppMsg(const ST::string&) const {}
-        virtual bool ErrorMsg(const char*) const {}
-        virtual bool DebugMsg(const char*) const {}
-        virtual bool WarningMsg(const char*) const {}
-        virtual bool AppMsg(const char*) const {}
+        virtual bool Log(const ST::string&) const;
+        virtual bool ErrorMsg(const ST::string&) const;
+        virtual bool DebugMsg(const ST::string&) const;
+        virtual bool WarningMsg(const ST::string&) const;
+        virtual bool AppMsg(const ST::string&) const;
+        virtual bool ErrorMsg(const char*) const;
+        virtual bool DebugMsg(const char*) const;
+        virtual bool WarningMsg(const char*) const;
+        virtual bool AppMsg(const char*) const;
 #endif
     };
 
@@ -92,7 +92,7 @@ namespace Plasma
     public:
         PLASMA_CREATABLE(NetApp)
 
-        virtual void Shutdown() {}
+        virtual void Shutdown();
     };
 
     class NetClientApp : public NetApp
@@ -117,24 +117,24 @@ namespace Plasma
     public:
         PLASMA_CREATABLE(NetClientApp)
 
-        virtual Boolean ISendGameMessage(Message*) {}
+        virtual Boolean ISendGameMessage(Message*);
         virtual Boolean SendMsg(NetMessage*) = 0;
         virtual unsigned long GetPlayerID() const = 0;
         virtual const char* GetPlayerName(Key) const = 0;
-        virtual float GetCurrentAgeTimeOfDayPercent() const {}
-        virtual bool ObjectInLocalAge(const SynchedObject*) const {}
-        virtual unsigned char GetJoinOrder() const {}
-        virtual Boolean IsRemotePlayerKey(Key, int*) {}
-        virtual Key GetLocalPlayerKey() const {}
-        virtual SynchedObject* GetLocalPlayer(int) const {}
-        virtual NetGroupId SelectNetGroup(SynchedObject*, Key) {}
-        virtual Boolean IsLocallyOwned(const Uoid&) const {}
-        virtual Boolean IsLocallyOwned(const SynchedObject*) const {}
-        virtual NetGroupId GetEffectiveNetGroup(const SynchedObject*) const {}
-        virtual int Update(double) {}
-        virtual const char* GetServerLogTimeAsString(LegacyStdString&) const {}
-        virtual Uoid GetAgeSDLObjectUoid(const char*) const {}
-        virtual void StayAlive(double) {}
-        virtual void QueueDisableNet(bool, const char* const) {}
+        virtual float GetCurrentAgeTimeOfDayPercent() const;
+        virtual bool ObjectInLocalAge(const SynchedObject*) const;
+        virtual unsigned char GetJoinOrder() const;
+        virtual Boolean IsRemotePlayerKey(Key, int*);
+        virtual Key GetLocalPlayerKey() const;
+        virtual SynchedObject* GetLocalPlayer(int) const;
+        virtual NetGroupId SelectNetGroup(SynchedObject*, Key);
+        virtual Boolean IsLocallyOwned(const Uoid&) const;
+        virtual Boolean IsLocallyOwned(const SynchedObject*) const;
+        virtual NetGroupId GetEffectiveNetGroup(const SynchedObject*) const;
+        virtual int Update(double);
+        virtual const char* GetServerLogTimeAsString(LegacyStdString&) const;
+        virtual Uoid GetAgeSDLObjectUoid(const char*) const;
+        virtual void StayAlive(double);
+        virtual void QueueDisableNet(bool, const char* const);
     };
 };

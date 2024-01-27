@@ -27,7 +27,7 @@ namespace Plasma
 };
 
 #define PLASMA_RECEIVER \
-    virtual Plasma::Boolean MsgReceive(Plasma::Message*) { return Plasma::False; }
+    virtual Plasma::Boolean MsgReceive(Plasma::Message*);
 
 namespace Plasma
 {

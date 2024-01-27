@@ -105,7 +105,7 @@ namespace Plasma
         virtual void PageInHoldList(char*) = 0;
         virtual void PageInHold(char*) = 0;
         virtual void GetPageVersion(unsigned short*, unsigned short*) = 0;
-        virtual void VerifyAgeUnloaded(char const*, char const*) {};
+        virtual void VerifyAgeUnloaded(char const*, char const*);
 #endif
 
         virtual void BeginShutdown() {};

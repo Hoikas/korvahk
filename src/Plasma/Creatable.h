@@ -30,25 +30,25 @@ namespace Plasma
 };
 
 #define PLASMA_CREATABLE(name) \
-    static unsigned short Index() { return Plasma::k##name; } \
+    static constexpr unsigned short Index() { return Plasma::k##name; } \
     \
     name() {} \
     virtual ~name() {} \
     \
-    virtual const char* ClassName() const { return "Plasma::" #name; } \
-    virtual Plasma::Creatable* GetInterface(unsigned short idx) { return nullptr; } \
-    virtual const Plasma::Creatable* GetConstInterface(unsigned short idx) const { return nullptr; } \
-    virtual unsigned short ClassIndex() const { return Index(); }
+    virtual const char* ClassName() const; \
+    virtual Plasma::Creatable* GetInterface(unsigned short idx); \
+    virtual const Plasma::Creatable* GetConstInterface(unsigned short idx) const; \
+    virtual unsigned short ClassIndex() const;
 
 #define PLASMA_CREATABLE_RW(name) \
     PLASMA_CREATABLE(name) \
-    virtual void Read(Plasma::Stream*, Plasma::ResMgr*) {} \
-    virtual void Write(Plasma::Stream*, Plasma::ResMgr*) {}
+    virtual void Read(Plasma::Stream*, Plasma::ResMgr*); \
+    virtual void Write(Plasma::Stream*, Plasma::ResMgr*);
 
 #define PLASMA_CREATABLE_RWVER(name) \
     PLASMA_CREATABLE_RW(name) \
-    virtual void ReadVersion(Plasma::Stream*, Plasma::ResMgr*) {} \
-    virtual void WriteVersion(Plasma::Stream*, Plasma::ResMgr*) {}
+    virtual void ReadVersion(Plasma::Stream*, Plasma::ResMgr*); \
+    virtual void WriteVersion(Plasma::Stream*, Plasma::ResMgr*);
 
 namespace Plasma
 {
@@ -61,7 +61,6 @@ namespace Plasma
     class Creator
     {
     public:
-        // VFTable functions
         Creator() {};
         virtual ~Creator() {};
 

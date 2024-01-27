@@ -22,16 +22,21 @@
 namespace Plasma
 {
     class KeyedObject : public Receiver {
+    protected:
         Key fpKey;
 
     public:
         PLASMA_CREATABLE_RW(KeyedObject)
         PLASMA_RECEIVER
 
-        virtual void Validate() {}
-        virtual bool IsFinal() { return false; }
-        virtual KeyedObject* GetSharedObject() { return nullptr; }
-        virtual void SetKey(Key) {}
+        virtual void Validate();
+        virtual bool IsFinal();
+        virtual KeyedObject* GetSharedObject();
+        virtual void SetKey(Key key)
+        {
+            fpKey = std::move(key);
+            KeyImp::GetFromKey(fpKey)->fObjectPtr = this;
+        }
 
     public:
         Key GetKey() const { return fpKey; }
