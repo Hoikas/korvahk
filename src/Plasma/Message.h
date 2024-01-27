@@ -65,15 +65,15 @@ namespace Plasma
         };
 
     private:
-#ifdef PLASMA_IS_MOUL
+#ifdef PLASMA_MOUL
         bool dispatchBreak;
 #endif
     public:
         Key fSender;
         TArray<Key> fReceivers;
         double fTimeStamp;
-        unsigned long fBCastFlags;
-        StlVector<unsigned long>* fNetRcvrPlayerIDs;
+        unsigned int fBCastFlags;
+        StlVector<unsigned int>* fNetRcvrPlayerIDs;
 
     public:
         PLASMA_CREATABLE(Message)
