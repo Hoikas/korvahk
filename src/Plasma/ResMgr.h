@@ -81,6 +81,7 @@ namespace Plasma
         virtual void WriteCreatable(Stream*, Creatable*) = 0;
         virtual Creatable* ReadCreatableVersion(Stream*) = 0;
         virtual void WriteCreatableVersion(Stream*, Creatable*) = 0;
+
         virtual Key NewKey(Uoid&, KeyedObject*) = 0;
         virtual Key NewKey(ConstStringRef, KeyedObject*, const Location&, const LoadMask & = {}) = 0;
 

@@ -23,6 +23,13 @@
 
 BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved)
 {
+    switch (reason) {
+    case DLL_PROCESS_DETACH:
+        if (reserved != nullptr)
+            break;
+        Korvahk::Plugin::Shutdown();
+        break;
+    }
     return TRUE;
 }
 

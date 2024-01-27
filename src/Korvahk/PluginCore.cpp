@@ -26,10 +26,6 @@
 
 // ==========================================================================
 
-static constexpr unsigned short kKorvahkPluginID = 500;
-
-// ==========================================================================
-
 namespace Korvahk
 {
     class PluginCreator : public Plasma::Creator
@@ -47,14 +43,15 @@ namespace Korvahk
             fFactory->UnRegister(this);
         }
 
-        Plasma::Creatable* Create() const override { return nullptr; };
-        unsigned short ClassIndex() override { return kKorvahkPluginID; }
+        Plasma::Creatable* Create() const override { return new Plugin(); };
+        unsigned short ClassIndex() override { return Plugin::Index(); }
         const char* ClassName() const override { return "Korvahk::Plugin"; }
         Plasma::Boolean HasBaseClass(unsigned short hBase) override
         {
-            if (hBase == Plasma::kKeyedObject)
+            constexpr unsigned short hKO = Plasma::KeyedObject::Index();
+            if (hBase == hKO)
                 return Plasma::True;
-            return fFactory->GetCreator(Plasma::kKeyedObject)->HasBaseClass(hBase);
+            return fFactory->GetCreator(hKO)->HasBaseClass(hBase);
         }
     };
 };
@@ -62,7 +59,27 @@ namespace Korvahk
 // ==========================================================================
 
 static std::unique_ptr<Korvahk::PluginCreator> s_creator;
-static Korvahk::Plugin* s_plugin{};
+static Plasma::Ref<Korvahk::Plugin> s_plugin;
+
+// ==========================================================================
+
+Plasma::Creatable* Korvahk::Plugin::GetInterface(unsigned short hClass)
+{
+    if (hClass == Index())
+        return this;
+    if (s_creator && s_creator->HasBaseClass(hClass))
+        return this;
+    return nullptr;
+}
+
+const Plasma::Creatable* Korvahk::Plugin::GetConstInterface(unsigned short hClass) const
+{
+    if (hClass == Index())
+        return this;
+    if (s_creator && s_creator->HasBaseClass(hClass))
+        return this;
+    return nullptr;
+}
 
 // ==========================================================================
 
@@ -82,11 +99,6 @@ Korvahk::Plugin::Plugin(
     IInitKey();
 }
 
-Korvahk::Plugin::~Plugin()
-{
-    s_plugin = nullptr;
-}
-
 // ==========================================================================
 
 void Korvahk::Plugin::IInitKey()
@@ -94,10 +106,13 @@ void Korvahk::Plugin::IInitKey()
     Log("Creating plugin's Key...");
     Plasma::Location globalLoc{ Plasma::Location::kGlobalFixedLocIdx };
     Plasma::Key key = fResMgr->NewKey("Korvahk", this, globalLoc);
-    SetKey(key);
     Log("... Done!");
+}
 
-    // Test receiving something...
+void Korvahk::Plugin::SetKey(Plasma::Key key)
+{
+    Plasma::KeyedObject::SetKey(std::move(key));
+
     fResMgr->Dispatch()->RegisterForExactType(Plasma::RenderMsg::Index(), GetKey());
 }
 
@@ -111,7 +126,7 @@ void Korvahk::Plugin::Initialize(
     Plasma::NetClientApp* netApp
 )
 {
-    if (s_plugin != nullptr) {
+    if (s_plugin) {
         s_plugin->Log("Duplicate call to Plugin::Initialize() debounced!");
         return;
     }
@@ -126,17 +141,23 @@ void Korvahk::Plugin::Initialize(
     s_plugin->Log("Plugin::Initialize() complete!");
 }
 
+void Korvahk::Plugin::Shutdown()
+{
+    s_plugin->Log("Shutting down...");
+
+    s_creator.reset();
+    s_plugin.Reset();
+}
+
 // ==========================================================================
 
 Plasma::Boolean Korvahk::Plugin::MsgReceive(Plasma::Message* msg)
 {
     if (auto* pRenderMsg = fFactory->Convert<Plasma::RenderMsg>(msg)) {
-        // TEMPORARY
-        // Just testing that message receiving works for now...
         LogF("First render message received for {}", pRenderMsg->fPipeline->ClassName());
         fResMgr->Dispatch()->UnRegisterForExactType(Plasma::RenderMsg::Index(), GetKey());
         return Plasma::True;
     }
 
-    return Plasma::KeyedObject::MsgReceive(msg);
+    return Plasma::False;
 }

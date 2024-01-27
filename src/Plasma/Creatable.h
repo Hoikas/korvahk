@@ -82,19 +82,19 @@ namespace Plasma
         T* Create()
         {
             static_assert(std::is_base_of_v<Creatable, T>, "Can only create Creatables");
-            return fCreators[T::Index()]->Create();
+            return (T*)fCreators[T::Index()]->Create();
         }
 
         void Register(Creator* worker)
         {
-            Ref();
+            IncRef("Creator");
             fCreators[worker->ClassIndex()] = worker;
         }
 
         void UnRegister(Creator* worker)
         {
             fCreators[worker->ClassIndex()] = nullptr;
-            UnRef();
+            DecRef("Creator");
         }
 
         Creator* GetCreator(unsigned short hClass) const

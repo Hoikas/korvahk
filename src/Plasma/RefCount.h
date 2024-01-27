@@ -17,23 +17,15 @@
 #pragma once
 
 #include <atomic>
+#include <type_traits>
 
 #include "plConfig.h"
-
-#ifdef PLASMA_ATOMIC_REFCOUNT
-#   define PLASMA_REFCOUNT_UNREF_SIGNATURE int UnRef(const char* tag = nullptr)
-#   define PLASMA_REFCOUNT_REF_SIGNATURE void Ref(const char* tag = nullptr)
-#else
-#   define PLASMA_REFCOUNT_UNREF_SIGNATURE int UnRef()
-#   define PLASMA_REFCOUNT_REF_SIGNATURE void Ref()
-#endif
 
 namespace Plasma
 {
     class RefCount
     {
     protected:
-        // Variables
 #ifdef PLASMA_ATOMIC_REFCOUNT
         std::atomic<int> fRefCount;
 #else
@@ -41,26 +33,99 @@ namespace Plasma
 #endif
 
     public:
-        // VFTable functions
         RefCount() : fRefCount(1) {}
         virtual ~RefCount() {}
 
         /**
          * \remarks This was renamed from `RefCount()` to prevent collisions with the ctor
          */
-        virtual int GetRefCount() const
-        {
-            return fRefCount;
-        }
+        virtual int GetRefCount() const { return fRefCount; }
 
-        virtual PLASMA_REFCOUNT_UNREF_SIGNATURE
+#ifdef PLASMA_ATOMIC_REFCOUNT
+        virtual int DecRef(const char* tag = nullptr)
         {
             int refCount = --fRefCount;
             if (refCount == 0)
                 delete this;
             return refCount;
         }
+#else
 
-        virtual PLASMA_REFCOUNT_REF_SIGNATURE { fRefCount++; }
+#endif
+
+#ifdef PLASMA_ATOMIC_REFCOUNT
+        virtual void IncRef(const char* tag = nullptr)
+#else
+        virtual void IncRef()
+#endif
+        {
+            fRefCount++;
+        }
+
+#ifndef PLASMA_ATOMIC_REFCOUNT
+        int DecRef(const char* tag) { DecRef(); }
+        void IncRef(const char* tag) { IncRef(); }
+#endif
+    };
+
+    struct Ref_NewType {};
+    constexpr Ref_NewType NewRef{};
+
+    template<typename _RefT>
+    class Ref final
+    {
+        static_assert(std::is_base_of_v<RefCount, _RefT>);
+
+        _RefT* fRef;
+
+    public:
+        Ref() : fRef() {}
+        Ref(const Ref& r)
+            : fRef(r.fRef)
+        {
+            if (fRef)
+                fRef->Ref();
+        }
+        Ref(Ref&& r) : fRef(std::move(r.fRef)) {}
+        Ref(_RefT* r) : fRef(r) {}
+        Ref(_RefT* r, Ref_NewType)
+            : fRef(r)
+        {
+            if (fRef)
+                fRef->IncRef();
+        }
+
+        ~Ref()
+        {
+            if (fRef)
+                fRef->DecRef();
+        }
+
+        _RefT* Get() const { return fRef; }
+
+        _RefT* Release()
+        {
+            _RefT* ref = fRef;
+            fRef = nullptr;
+            return ref;
+        }
+
+        void Reset()
+        {
+            if (fRef) {
+                fRef->DecRef();
+                fRef = nullptr;
+            }
+        }
+
+        _RefT* operator ->() const { return fRef; }
+        operator bool() const { return fRef != nullptr; }
+
+        void operator =(_RefT* r)
+        {
+            if (fRef)
+                fRef->DecRef();
+            fRef = r;
+        }
     };
 };

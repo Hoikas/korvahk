@@ -49,34 +49,50 @@ namespace Korvahk
             Plasma::TimerShare* timer,
             Plasma::NetClientApp* netApp
         );
-        ~Plugin() override;
+
+    public:
+        Plugin()
+            : fResMgr(), fFactory(),
+              fTimerCallbackMgr(), fTimer(),
+              fNetApp()
+        {
+        }
+
+        static constexpr unsigned short Index()
+        {
+            return 500;
+        };
+
+        const char* ClassName() const override
+        {
+            return "Korvahk::Plugin";
+        }
+
+        Plasma::Creatable* GetInterface(unsigned short idx) override;
+        const Plasma::Creatable* GetConstInterface(unsigned short idx) const override;
+
+        unsigned short ClassIndex() const override
+        {
+            return Index();
+        }
 
     private:
         void IInitKey();
 
     public:
-        PLASMA_REFCOUNT_UNREF_SIGNATURE override
-        {
-            // This exists to ensure that all Korvahk objects are deleted in this DLL.
-            // Otherwise, Plasma may try to delete them inside plClient.exe, which could
-            // cause cross-CRT problems.
-            int refs = --fRefCount;
-            if (refs == 0)
-                delete this;
-
-            return refs;
-        }
-
-        Plasma::Boolean MsgReceive(Plasma::Message* msg);
+        Plasma::Boolean MsgReceive(Plasma::Message* msg) override;
+        void SetKey(Plasma::Key) override;
 
     private:
         void ILog(const ST::string& msg) const
         {
+            if (fNetApp) {
 #ifdef PLASMA_HAVE_STRING_THEORY
-            fNetApp->Log(msg);
+                fNetApp->Log(msg);
 #else
-            fNetApp->Log(msg.to_latin_1.data());
+                fNetApp->Log(msg.to_latin_1.data());
 #endif
+            }
         }
 
     public:
@@ -105,5 +121,7 @@ namespace Korvahk
             Plasma::TimerShare* timer,
             Plasma::NetClientApp* netApp
         );
+
+        static void Shutdown();
     };
 };
